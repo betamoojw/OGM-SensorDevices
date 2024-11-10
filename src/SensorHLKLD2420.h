@@ -43,10 +43,6 @@
 
         #define BUFFER_LENGTH mBufferIndex
 
-        #define HLKLD2420_FLASH_VERSION 1
-        #define HLKLD2420_FLASH_MAGIC_WORD 2274541778
-        #define HLKLD2420_FLASH_SIZE 325
-
 class SensorHLKLD2420 : public Sensor
 {
   private:
@@ -85,12 +81,10 @@ class SensorHLKLD2420 : public Sensor
     int storedDelayTime = NO_NUM;
     int storedTriggerThreshold[16];
     int storedHoldThreshold[16];
-    float triggerOffsetDb[16];
-    float holdOffsetDb[16];
+    float triggerThresholdDb[16];
+    float holdThresholdDb[16];
     bool calibrationCompleted = false;
-    bool useFactoryDefaultThresholds = false;
-    // initially suppress ON/OFF signals form HF-Sensor
-    uint32_t calibrationOnOffTimer = 1;
+    bool testCalibrationData = false;
 
     uint32_t rawDataLastRecordingReceived = 0;
     int rawDataRecordingCount = 0;
@@ -100,11 +94,6 @@ class SensorHLKLD2420 : public Sensor
     float rawDataRangeAverageDb[16] = {};
     float rawDataRangeDeviationDb[16] = {};
     float rawDataRangeMaxDb[16] = {};
-    float rawDataRangeTestAverageDb[16] = {};
-    float rawDataRangeTestDifferencesDb[16] = {};
-    float rawDataRangeTestDeviationDb[16] = {};
-    float rawDataRangeTestMaxDb[16] = {};
-    bool calibrationTestRunOnly = false;
 
     int8_t mDefaultSensitivity = 5;
     uint8_t mHfSensorStartupState = 0;
@@ -139,7 +128,6 @@ class SensorHLKLD2420 : public Sensor
   protected:
     uint8_t mPresence = -1;
     float mMoveSpeed = NO_NUM;
-    int8_t mSensitivity = -1;
     uint16_t mDelayTime = 30;
     uint8_t mRangeGateMin = 0;
     uint8_t mRangeGateMax = 15;
@@ -153,15 +141,10 @@ class SensorHLKLD2420 : public Sensor
     SensorHLKLD2420(uint16_t iMeasureTypes, TwoWire *iWire, uint8_t iAddress);
     virtual ~SensorHLKLD2420() {}
 
-    void sensorReadFlash(const uint8_t *iBuffer, const uint16_t iSize) override;
-    void sensorWriteFlash() override;
-    uint16_t sensorFlashSize() override;
-
     void forceCalibration();
 
     bool begin() override;
     uint8_t getI2cSpeed() override;
-    void defaultSensorParameters(uint8_t iSensitivity, uint16_t iDelayTime, uint8_t iRangeGateMin, uint8_t iRangeGateMax);
     // void resetSensor();
     void writeSensitivity(int8_t iSensitivity);
     // void readSensitivity();
