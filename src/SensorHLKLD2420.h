@@ -114,7 +114,6 @@ class SensorHLKLD2420 : public Sensor
     float maxDbValue = log10(pow(2, 31) - 1) * 10;
 
     void rebootSensorSoft();
-    void rebootSensorHard();
     void startupLoop();
     void uartGetPacket();
     int bytesToInt(byte byte1, byte byte2, byte byte3, byte byte4);
@@ -122,7 +121,7 @@ class SensorHLKLD2420 : public Sensor
     int dBToRaw(float dbValue);
     void restartStartupLoop();
     void resetRawDataRecording();
-    void sendCalibrationData();
+    void sendCalibrationData(bool withHardReboot = false);
     bool getSensorData();
 
   protected:
@@ -142,6 +141,7 @@ class SensorHLKLD2420 : public Sensor
     virtual ~SensorHLKLD2420() {}
 
     void forceCalibration();
+    void rebootSensorHard();
 
     bool begin() override;
     uint8_t getI2cSpeed() override;
