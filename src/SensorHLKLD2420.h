@@ -146,7 +146,7 @@ class SensorHLKLD2420 : public Sensor
     bool begin() override;
     uint8_t getI2cSpeed() override;
     // void resetSensor();
-    void writeSensitivity(int8_t iSensitivity);
+    // void writeSensitivity(int8_t iSensitivity);
     // void readSensitivity();
     void sendCommand(uint8_t command, const uint8_t parameter[] = nullptr, uint8_t parameterLength = 0);
     void showHelp();

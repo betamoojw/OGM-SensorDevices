@@ -19,10 +19,10 @@ std::string SensorHLKLD2420::logPrefix()
     return "Sensor<HLKLD2420>";
 }
 
-void SensorHLKLD2420::writeSensitivity(int8_t iSensitivity)
-{
-    sendCalibrationData();
-}
+// void SensorHLKLD2420::writeSensitivity(int8_t iSensitivity)
+// {
+//     sendCalibrationData();
+// }
 
 uint8_t SensorHLKLD2420::getSensorClass()
 {
@@ -35,6 +35,7 @@ void SensorHLKLD2420::sensorLoopInternal()
     {
         case Wakeup:
             Sensor::sensorLoopInternal();
+            rebootSensorHard();
             break;
         case Calibrate:
             uartGetPacket();
@@ -336,7 +337,7 @@ int SensorHLKLD2420::dBToRaw(float dbValue)
     if (dbValue > maxDbValue)
         dbValue = maxDbValue;
 
-    return int(pow(10, dbValue / 10));
+    return int(pow(10, dbValue / 10) + 0.5);
 }
 
 void SensorHLKLD2420::rebootSensorSoft()
@@ -857,7 +858,10 @@ void SensorHLKLD2420::sendCalibrationData(bool withHardReboot)
     {
         // re-start startup loop to readback values from sensor
         if (withHardReboot)
+        {
+            openknx.console.writeDiagnoseKo("");
             rebootSensorHard();
+        }
         else
             restartStartupLoop();
     }
