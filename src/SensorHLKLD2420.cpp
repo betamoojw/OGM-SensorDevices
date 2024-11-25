@@ -553,7 +553,7 @@ bool SensorHLKLD2420::getSensorData()
                         for (uint8_t i = 0; i < 16; i++)
                         {
                             storedTriggerThreshold[i] = bytesToInt(mBuffer[i * 4 + 8], mBuffer[i * 4 + 9], mBuffer[i * 4 + 10], mBuffer[i * 4 + 11]);
-                            logDebugP("Gate %i: %04.0f", i, rawToDb(storedTriggerThreshold[i]) * 100.0);
+                            logDebugP("Gate %i: %02.2f dB (%i)", i, rawToDb(storedTriggerThreshold[i]), storedTriggerThreshold[i]);
                         }
                         logIndentDown();
 
@@ -575,7 +575,7 @@ bool SensorHLKLD2420::getSensorData()
                         for (uint8_t i = 0; i < 16; i++)
                         {
                             storedHoldThreshold[i] = bytesToInt(mBuffer[i * 4 + 4], mBuffer[i * 4 + 5], mBuffer[i * 4 + 6], mBuffer[i * 4 + 7]);
-                            logDebugP("Gate %i: %04.0f", i, rawToDb(storedHoldThreshold[i]) * 100.0);
+                            logDebugP("Gate %i: %02.2f dB (%i)", i, rawToDb(storedHoldThreshold[i]), storedHoldThreshold[i]);
                         }
                         logIndentDown();
 
@@ -625,7 +625,7 @@ bool SensorHLKLD2420::getSensorData()
             logIndentUp();
             for (uint8_t i = 0; i < 16; i++)
             {
-                logTraceP("Gate %i: %04.0f", i, rawToDb(rangeMax[i]) * 100.0);
+                logTraceP("Gate %i: %02.2f dB (%i)", i, rawToDb(rangeMax[i]), rangeMax[i]);
             }
             logIndentDown();
 
@@ -780,7 +780,7 @@ void SensorHLKLD2420::sendCalibrationData(bool withHardReboot)
             param[offset + 4] = (uint8_t)((rawValue >> 16) & 0xFF);
             param[offset + 5] = (uint8_t)((rawValue >> 24) & 0xFF);
 
-            logDebugP("Gate %i:  %04.0f", i, triggerThresholdDb[i] * 100.0);
+            logDebugP("Gate %i: %02.2f dB (%i)", i, triggerThresholdDb[i], rawValue);
         }
         sendCommand(CMD_WRITE_MODULE_CONFIG, param, 48);
         delay(500);
@@ -796,7 +796,7 @@ void SensorHLKLD2420::sendCalibrationData(bool withHardReboot)
             param[offset + 4] = (uint8_t)((rawValue >> 16) & 0xFF);
             param[offset + 5] = (uint8_t)((rawValue >> 24) & 0xFF);
 
-            logDebugP("Gate %i:  %04.0f", i, triggerThresholdDb[i] * 100.0);
+            logDebugP("Gate %i: %02.2f dB (%i)", i, triggerThresholdDb[i], rawValue);
         }
         sendCommand(CMD_WRITE_MODULE_CONFIG, param, 48);
         delay(500);
@@ -820,7 +820,7 @@ void SensorHLKLD2420::sendCalibrationData(bool withHardReboot)
             param[offset + 4] = (uint8_t)((rawValue >> 16) & 0xFF);
             param[offset + 5] = (uint8_t)((rawValue >> 24) & 0xFF);
 
-            logDebugP("Gate %i:  %04.0f", i, holdThresholdDb[i] * 100.0);
+            logDebugP("Gate %i: %02.2f dB (%i)", i, holdThresholdDb[i], rawValue);
         }
         sendCommand(CMD_WRITE_MODULE_CONFIG, param, 48);
         delay(500);
@@ -836,7 +836,7 @@ void SensorHLKLD2420::sendCalibrationData(bool withHardReboot)
             param[offset + 4] = (uint8_t)((rawValue >> 16) & 0xFF);
             param[offset + 5] = (uint8_t)((rawValue >> 24) & 0xFF);
 
-            logDebugP("Gate %i:  %04.0f", i, holdThresholdDb[i] * 100.0);
+            logDebugP("Gate %i: %02.2f dB (%i)", i, holdThresholdDb[i], rawValue);
         }
         sendCommand(CMD_WRITE_MODULE_CONFIG, param, 48);
         delay(500);
