@@ -121,7 +121,7 @@ class SensorHLKLD2420 : public Sensor
     int dBToRaw(float dbValue);
     void restartStartupLoop();
     void resetRawDataRecording();
-    void sendCalibrationData(bool withHardReboot = false);
+    void sendCalibrationData(bool withHardReboot = true);
     bool getSensorData();
 
   protected:

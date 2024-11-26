@@ -35,7 +35,7 @@ void SensorHLKLD2420::sensorLoopInternal()
     {
         case Wakeup:
             Sensor::sensorLoopInternal();
-            rebootSensorHard();
+            // rebootSensorHard();
             break;
         case Calibrate:
             uartGetPacket();
@@ -170,10 +170,11 @@ void SensorHLKLD2420::startupLoop()
                     holdThresholdDb[13] = ParamPM_Hold13 / 100.0;
                     holdThresholdDb[14] = ParamPM_Hold14 / 100.0;
                     holdThresholdDb[15] = ParamPM_Hold15 / 100.0;
-                    sendCalibrationData(); // correct place? WP
+                    sendCalibrationData(true); // correct place? WP
 
                 }
-                mHfSensorStartupState = START_FINISHED;
+                if (mHfSensorStartupState == START_READ2_DONE)
+                    mHfSensorStartupState = START_FINISHED;
                 sendCommand(CMD_CLOSE_COMMAND_MODE);
             }
             break;
