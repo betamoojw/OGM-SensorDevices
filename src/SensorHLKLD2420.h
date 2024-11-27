@@ -43,10 +43,6 @@
 
         #define BUFFER_LENGTH mBufferIndex
 
-        #define HLKLD2420_FLASH_VERSION 0
-        #define HLKLD2420_FLASH_MAGIC_WORD 2274541778
-        #define HLKLD2420_FLASH_SIZE 69
-
 class SensorHLKLD2420 : public Sensor
 {
   private:
@@ -87,21 +83,17 @@ class SensorHLKLD2420 : public Sensor
     int storedHoldThreshold[16];
     float triggerThresholdDb[16];
     float holdThresholdDb[16];
-    float triggerOffsetDb;
-    float holdOffsetDb;
-    float customeTriggerOffsetDb[16] = {};
-    float customHoldOffsetDb[16] = {};
     bool calibrationCompleted = false;
-    bool useFactoryDefaultThresholds = false;
-    // initially suppress ON/OFF signals form HF-Sensor
-    uint32_t calibrationOnOffTimer = 1;
+    bool testCalibrationData = false;
 
     uint32_t rawDataLastRecordingReceived = 0;
     int rawDataRecordingCount = 0;
-    float rawDataRangeAverageTempDb[16];
+    float rawDataRangeTempSumDb[16];
+    double rawDataRangeTempSquareSumDb[16];
+    float rawDataRangeTempMaxDb[16] = {};
     float rawDataRangeAverageDb[16] = {};
-    float rawDataRangeDifferencesDb[16] = {};
-    bool calibrationTestRunOnly = false;
+    float rawDataRangeDeviationDb[16] = {};
+    float rawDataRangeMaxDb[16] = {};
 
     int8_t mDefaultSensitivity = 5;
     uint8_t mHfSensorStartupState = 0;
@@ -119,8 +111,9 @@ class SensorHLKLD2420 : public Sensor
     uint8_t PARAM_READ_DELAY_MAINTAIN[PARAM_READ_DELAY_MAINTAIN_LENGTH] = {0x04, 0x00, 0x20, 0x00, 0x21, 0x00, 0x22, 0x00, 0x23, 0x00, 0x24, 0x00, 0x25, 0x00, 0x26, 0x00, 0x27, 0x00, 0x28, 0x00, 0x29, 0x00, 0x2A, 0x00, 0x2B, 0x00, 0x2C, 0x00, 0x2D, 0x00, 0x2E, 0x00, 0x2F, 0x00};
     uint8_t PARAM_RAW_DATA_MODE[PARAM_RAW_DATA_MODE_LENGTH] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
+    float maxDbValue = log10(pow(2, 31) - 1) * 10;
+
     void rebootSensorSoft();
-    void rebootSensorHard();
     void startupLoop();
     void uartGetPacket();
     int bytesToInt(byte byte1, byte byte2, byte byte3, byte byte4);
@@ -128,14 +121,12 @@ class SensorHLKLD2420 : public Sensor
     int dBToRaw(float dbValue);
     void restartStartupLoop();
     void resetRawDataRecording();
-    void sendCalibrationData();
-    bool useCustomOffsets();
+    void sendCalibrationData(bool withHardReboot = true);
     bool getSensorData();
 
   protected:
     uint8_t mPresence = -1;
     float mMoveSpeed = NO_NUM;
-    int8_t mSensitivity = -1;
     uint16_t mDelayTime = 30;
     uint8_t mRangeGateMin = 0;
     uint8_t mRangeGateMax = 15;
@@ -145,27 +136,27 @@ class SensorHLKLD2420 : public Sensor
     float measureValue(MeasureType iMeasureType) override;
 
   public:
-    SensorHLKLD2420(uint16_t iMeasureTypes, TwoWire* iWire);
-    SensorHLKLD2420(uint16_t iMeasureTypes, TwoWire* iWire, uint8_t iAddress);
+    SensorHLKLD2420(uint16_t iMeasureTypes, TwoWire *iWire);
+    SensorHLKLD2420(uint16_t iMeasureTypes, TwoWire *iWire, uint8_t iAddress);
     virtual ~SensorHLKLD2420() {}
 
-    void sensorReadFlash(const uint8_t* iBuffer, const uint16_t iSize) override;
-    void sensorWriteFlash() override;
-    uint16_t sensorFlashSize() override;
-
     void forceCalibration();
+    void rebootSensorHard();
 
     bool begin() override;
     uint8_t getI2cSpeed() override;
-    void defaultSensorParameters(uint8_t iSensitivity, uint16_t iDelayTime, uint8_t iRangeGateMin, uint8_t iRangeGateMax);
     // void resetSensor();
-    void writeSensitivity(int8_t iSensitivity);
+    // void writeSensitivity(int8_t iSensitivity);
     // void readSensitivity();
     void sendCommand(uint8_t command, const uint8_t parameter[] = nullptr, uint8_t parameterLength = 0);
     void showHelp();
     bool processCommand(const std::string iCmd, bool iDebugKo);
     std::string logPrefix() override;
     void switchPower(bool on);
+    bool handleFunctionProperty(uint8_t *iData, uint8_t *eResultData, uint8_t &eResultLength);
+    bool getCalibrationData(uint8_t *iData, uint8_t *eResultData, uint8_t &eResultLength);
+    bool setCalibrationData(uint8_t *iData, uint8_t *eResultData, uint8_t &eResultLength);
+    bool doCalibration(uint8_t *iData, uint8_t *eResultData, uint8_t &eResultLength);
 };
     #endif
 #endif
