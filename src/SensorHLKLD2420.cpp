@@ -122,15 +122,12 @@ void SensorHLKLD2420::startupLoop()
             {
                 pSensorStateDelay = millis();
 
-                // if (calibrationCompleted)
-                // {
-                //     // skip calibration if valid calibration values have been read from flash
-                //     mHfSensorStartupState = START_FINISHED;
-
-                //     sendCalibrationData();
-                // }
-                // else
-                if (!testCalibrationData)
+                if (testCalibrationData)
+                {
+                    // skip calibration if valid calibration values have been read from flash
+                    sendCalibrationData();
+                }
+                else
                 {
                     mDelayTime = ParamPM_HfDelayTime;
                     mRangeGateMin = ParamPM_HfRangeGateMin;
@@ -757,7 +754,7 @@ void SensorHLKLD2420::sendCalibrationData(bool withHardReboot)
         openknx.console.writeDiagnoseKo("HLK par send");
     }
 
-    if (storedCurrentCalibration)
+    if (storedCurrentCalibration && storedCurrentDistanceTime)
         logDebugP("Skip writing calibration to sensor as data is current");
     else
     {
@@ -1325,7 +1322,10 @@ bool SensorHLKLD2420::setCalibrationData(uint8_t *iData, uint8_t *eResultData, u
         mRangeGateMax = iData[3];
         mDelayTime = (iData[4] << 8) | iData[5];
         testCalibrationData = true;
-        sendCalibrationData(true);
+        // sendCalibrationData(true);
+        pSensorState = Calibrate;
+        mHfSensorStartupState = START_READ2_DONE;
+
     }
 
     eResultLength = 1;
@@ -1345,6 +1345,9 @@ bool SensorHLKLD2420::doCalibration(uint8_t *iData, uint8_t *eResultData, uint8_
             return true;
         case 2:
             eResultData[1] = calibrationCompleted;
+            return true;
+        case 3:
+            eResultData[1] = !testCalibrationData;
             return true;
         default:
             eResultData[0] = 1;
