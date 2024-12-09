@@ -10,7 +10,7 @@ SensorDevices::~SensorDevices()
 {
 }
 
-void SensorDevices::setup()
+void SensorDevices::setup(bool iConfigured)
 {
 #ifdef ARDUINO_ARCH_RP2040
     #ifndef I2C_WIRE
@@ -67,15 +67,18 @@ Sensor* SensorDevices::factory(uint8_t iSensorClass, MeasureType iMeasureType)
     return lSensor;
 }
 
-void SensorDevices::loop()
+void SensorDevices::loop(bool iConfigured)
 {
-    uint8_t lProcessedSensors = 0;
-    if (mNumSensors == 0) return;
-    do
-    {
-        mSensors[mCurrentSensorIterator]->sensorLoopInternal();
+    if (iConfigured || mSensorTestDelayTimer > 0) {
+        uint8_t lProcessedSensors = 0;
+        if (mNumSensors == 0) return;
+        do
+        {
+            mSensors[mCurrentSensorIterator]->sensorLoopInternal();
+        }
+        while (openknx.common.freeLoopIterate(mNumSensors, mCurrentSensorIterator, lProcessedSensors));
     }
-    while (openknx.common.freeLoopIterate(mNumSensors, mCurrentSensorIterator, lProcessedSensors));
+    if (mSensorTestDelayTimer > 0 && delayCheck(mSensorTestDelayTimer, 500)) testSensorMeasurement();
 }
 
 // static
@@ -159,3 +162,82 @@ void SensorDevices::defaultWire(TwoWire& iWire)
 {
     mWire = &iWire;
 }
+
+bool SensorDevices::processCommand(const std::string iCmd, bool iDiagnoseKo)
+{
+    bool lResult = false;
+    if (iCmd.length() == 13 && iCmd == "sen test mode") {
+        logInfoP("Testing all sensors");
+        mSensorTestDelayTimer = delayTimerInit() + 5000;
+        testSensors();
+        lResult = true;
+    }
+    return lResult;
+}
+
+void SensorDevices::testSensors()
+{
+    // this method tests all sensors 
+    // each sensor is initialized and should provide at least one measure value
+    factory(SENS_SHT3X, Temperature);
+    // factory(SENS_BME280, Temperature);
+    factory(SENS_BME680, Temperature);
+    factory(SENS_SCD40, Temperature);
+    factory(SENS_VL53L1X, Tof);
+    factory(SENS_OPT300X, Lux);
+    factory(SENS_VEML7700, Lux);
+
+#ifdef HF_POWER_PIN
+    pinMode(HF_POWER_PIN, OUTPUT);
+    // at startup, we turn HF-Sensor on
+    digitalWrite(HF_POWER_PIN, HIGH);
+    delay(1000);
+
+    // ensure no data lost even for sensor raw data
+    // up to 1288 bytes are send by the sensor at once
+    HF_SERIAL.setFIFOSize(1300);
+    HF_SERIAL.setRX(HF_UART_RX_PIN);
+    HF_SERIAL.setTX(HF_UART_TX_PIN);
+    HF_SERIAL.begin(HF_SERIAL_SPEED);
+    // factory(SENS_MR24xxB1, Pres);
+    factory(SENS_HLKLD2420, Pres);
+#endif
+    delay(1000);
+
+    beginSensors();
+}
+
+void SensorDevices::testSensorMeasurement() {
+    // slow, but its just test mode...
+    MeasureType lMeasureTypes[] = {Temperature, Tof, Lux, Pres}; 
+    static bool sCheckedSensors[MAX_SUPPORTED_SENSORS] = {false};
+    bool lFinished = true;
+    for (uint8_t lCounter = 0; lCounter < mNumSensors; lCounter++) {
+        if (!sCheckedSensors[lCounter]) {
+            Sensor* lSensor = mSensors[lCounter];
+            lFinished = false;
+            SensorState lSensorState = lSensor->getSensorState();
+            if (lSensorState == SensorState::Off) sCheckedSensors[lCounter] = true;
+            if (lSensorState == SensorState::Running || (lSensorState == SensorState::Calibrate && lSensor->checkMeasureType(Pres))) {
+                for (uint8_t lMeasureIndex = 0; lMeasureIndex < 4; lMeasureIndex++)
+                {
+                    if (lSensor->checkMeasureType(lMeasureTypes[lMeasureIndex])) {
+                        float lValue = 0.0;
+                        bool lSuccess = lSensor->measureValue(lMeasureTypes[lMeasureIndex], lValue);
+                        logInfo(lSensor->logPrefix(), "%s %f", lSuccess ? "OK" : "FAIL", lSuccess ? lValue : -1);
+                        sCheckedSensors[lCounter] = true;
+                    }
+                }
+            }
+        }
+    }
+    if (lFinished) {
+        logInfoP("Sensor test finished");
+        mSensorTestDelayTimer = 0;
+    }
+    else {
+        mSensorTestDelayTimer = delayTimerInit();
+    }
+}
+
+

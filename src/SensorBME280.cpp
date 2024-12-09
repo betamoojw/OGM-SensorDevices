@@ -61,7 +61,7 @@ bool SensorBME280::initWakeup()
 {
     // check if sensor, i.e. the chip ID is correct
     _sensorID = read8(BME280_REGISTER_CHIPID);
-    if (_sensorID != 0x60)
+    if (_sensorID != 0x60 && _sensorID != 0x58)
         return false;
 
     // reset the device using soft-reset
@@ -103,7 +103,7 @@ bool SensorBME280::begin()
     _i2caddr = pI2CAddress;
     _wire = pWire;
     bool lResult = Sensor::begin();
-    pSensorState = Wakeup;
+    // pSensorState = Wakeup;
     // logResult(lResult);
     return lResult;
 }

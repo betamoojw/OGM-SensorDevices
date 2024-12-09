@@ -14,17 +14,20 @@ class SensorDevices : public OpenKNX::Module
     uint8_t mCurrentSensorIterator = 0;
     uint8_t mMeasureValueIterator = 0;
     TwoWire *mWire = &Wire;
+    uint32_t mSensorTestDelayTimer = 0;
 
     // forward declaration
     // this allows to avoid include all sensors as in sensorFactory
     Sensor *newSensor(uint8_t iSensorClass, MeasureType iMeasureType, TwoWire *iWire);
-
+    bool processCommand(const std::string iCmd, bool iDiagnoseKo) override;
+    void testSensorMeasurement();
+    
   public:
     SensorDevices(/* args */);
     ~SensorDevices();
 
-    void setup() override;
-    void loop() override;
+    void setup(bool iConfigured) override;
+    void loop(bool iConfigured) override;
     const std::string name() override;
     const std::string version() override;
     uint16_t flashSize() override;
@@ -38,6 +41,8 @@ class SensorDevices : public OpenKNX::Module
     bool beginSensors();
     uint8_t getMaxI2cSpeed();
     void defaultWire(TwoWire &iWire);
+
+    void testSensors();
 };
 
 extern SensorDevices openknxSensorDevicesModule;

@@ -142,3 +142,13 @@ std::string Sensor::logPrefix()
 {
     return "Sensor";
 }
+
+SensorState Sensor::getSensorState()
+{
+    return pSensorState;
+}
+
+uint16_t Sensor::getMeasureTypes()
+{
+    return pMeasureTypes;
+}
