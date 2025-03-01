@@ -2,11 +2,11 @@
 #pragma once
 #ifdef SENSORMODULE
     #include "Sensor.h"
-    #include <SensirionI2CScd4x.h>
+    #include <SensirionI2cScd4x.h>
 
     #define SCD40_I2C_ADDR 0x62
 
-class SensorSCD40 : public Sensor, protected SensirionI2CScd4x
+class SensorSCD40 : public Sensor, protected SensirionI2cScd4x
 {
   private:
     float mTemp = NO_NUM;

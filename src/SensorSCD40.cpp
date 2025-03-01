@@ -5,10 +5,10 @@
     #include <Wire.h>
 
 SensorSCD40::SensorSCD40(uint16_t iMeasureTypes, TwoWire* iWire)
-    : Sensor(iMeasureTypes, iWire, SCD40_I2C_ADDR), SensirionI2CScd4x(){};
+    : Sensor(iMeasureTypes, iWire, SCD40_I2C_ADDR), SensirionI2cScd4x(){};
 
 SensorSCD40::SensorSCD40(uint16_t iMeasureTypes, TwoWire* iWire, uint8_t iAddress)
-    : Sensor(iMeasureTypes, iWire, iAddress), SensirionI2CScd4x(){};
+    : Sensor(iMeasureTypes, iWire, iAddress), SensirionI2cScd4x(){};
 
 uint8_t SensorSCD40::getSensorClass()
 {
@@ -81,7 +81,7 @@ bool SensorSCD40::begin()
 
 bool SensorSCD40::beginInternal()
 {
-    SensirionI2CScd4x::begin(*pWire);
+    SensirionI2cScd4x::begin(*pWire, SCD40_I2C_ADDR);
     bool lResult = false;
     lResult = (stopPeriodicMeasurement() == 0);
     if (lResult)
@@ -100,7 +100,7 @@ uint8_t SensorSCD40::getI2cSpeed()
 bool SensorSCD40::getSensorData()
 {
     bool lDataReady;
-    bool lResult = (SensirionI2CScd4x::getDataReadyFlag(lDataReady) == 0);
+    bool lResult = (SensirionI2cScd4x::getDataReadyStatus(lDataReady) == 0);
 
     if (lResult)
     {
@@ -109,12 +109,12 @@ bool SensorSCD40::getSensorData()
             uint16_t lTemp;
             uint16_t lHum;
             uint16_t lCo2;
-            lResult = (SensirionI2CScd4x::readMeasurementTicks(lCo2, lTemp, lHum) == 0);
+            lResult = (SensirionI2cScd4x::readMeasurementRaw(lCo2, lTemp, lHum) == 0);
             lResult = (lCo2 > 0);
             if (lResult)
             {
-                mTemp = lTemp * 175.0 / 65536.0 - 45.0;
-                mHum = lHum * 100.0 / 65536.0;
+                mTemp = lTemp * 175.0 / 65535.0 - 45.0;
+                mHum = lHum * 100.0 / 65535.0;
                 mCo2 = lCo2;
             }
             processPressure();
