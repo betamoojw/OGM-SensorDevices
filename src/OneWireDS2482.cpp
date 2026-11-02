@@ -441,7 +441,7 @@ void OneWireDS2482::setStrongPullup()
 
 void OneWireDS2482::clearStrongPullup()
 {
-    writeConfig(readConfig() & !DS2482_CONFIG_SPU);
+    writeConfig(readConfig() & ~DS2482_CONFIG_SPU);
 }
 
 void OneWireDS2482::setActivePullup()
@@ -451,7 +451,7 @@ void OneWireDS2482::setActivePullup()
 
 void OneWireDS2482::clearActivePullup()
 {
-    writeConfig(readConfig() | !DS2482_CONFIG_APU);
+    writeConfig(readConfig() | ~DS2482_CONFIG_APU);
 }
 
 void OneWireDS2482::searchLoopCallback()
