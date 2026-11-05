@@ -30,36 +30,42 @@ void OneWireDS2438::loop()
                 mState = updateTemp() ? SetConfigVDD : Error;
                 pDelay = millis();
             }
+            break;
         case SetConfigVDD:
             if (delayCheck(pDelay, 1))
             {
                 mState = writeConfig(CONFIG_VDD) ? StartMeasureVDD : Error;
                 pDelay = millis();
             }
+            break;
         case StartMeasureVDD:
             if (delayCheck(pDelay, 20))
             {
                 mState = startConversionVolt() ? GetMeasureVDD : Error;
                 pDelay = millis();
             }
+            break;
         case GetMeasureVDD:
             if (delayCheck(pDelay, 10))
             {
                 mState = updateVDD() ? SetConfigVAD : Error;
                 pDelay = millis();
             }
+            break;
         case SetConfigVAD:
             if (delayCheck(pDelay, 1))
             {
                 mState = writeConfig(CONFIG_VAD) ? StartMeasureVAD : Error;
                 pDelay = millis();
             }
+            break;
         case StartMeasureVAD:
             if (delayCheck(pDelay, 20))
             {
                 mState = startConversionVolt() ? GetMeasureVAD : Error;
                 pDelay = millis();
             }
+            break;
         case GetMeasureVAD:
             if (delayCheck(pDelay, 10))
             {
@@ -243,7 +249,7 @@ bool OneWireDS2438::updateVAD()
     int16_t lVoltRaw = (((int16_t)mScratchPad[VOLT_MSB]) << 8) | mScratchPad[VOLT_LSB];
     mTmpVAD = (float)lVoltRaw * 0.01;
 
-    lVoltRaw = (((int16_t)mScratchPad[CURR_MSB]) << 8) | mScratchPad[CURR_MSB];
+    lVoltRaw = (((int16_t)mScratchPad[CURR_MSB]) << 8) | mScratchPad[CURR_LSB];
     mTmpVSens = (double)lVoltRaw * 0.0002441;
 
     lResult = isNum(mTmpVAD);

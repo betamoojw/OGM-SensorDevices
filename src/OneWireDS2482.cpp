@@ -149,8 +149,10 @@ void OneWireDS2482::loop()
                     {
                         mState = Startup;
                         // reset all device counter
-                        mSearchPrio->manageSearchCounter(OneWireSearch::SearchError);
-                        mSearchNormal->manageSearchCounter(OneWireSearch::SearchError);
+                        if (mSearchPrio != NULL)
+                            mSearchPrio->manageSearchCounter(OneWireSearch::SearchError);
+                        if (mSearchNormal != NULL)
+                            mSearchNormal->manageSearchCounter(OneWireSearch::SearchError);
                     }
                 }
                 else
@@ -451,7 +453,7 @@ void OneWireDS2482::setActivePullup()
 
 void OneWireDS2482::clearActivePullup()
 {
-    writeConfig(readConfig() | ~DS2482_CONFIG_APU);
+    writeConfig(readConfig() & ~DS2482_CONFIG_APU);
 }
 
 void OneWireDS2482::searchLoopCallback()
